@@ -1,11 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Section, NAV_ITEMS, CAT_IMAGE } from "./game/constants";
 import { HomeSection, ProfileSection } from "./game/GameSections";
 import { ScanLine, ShopSection, LeaderboardSection, QuestsSection, SettingsSection } from "./game/GameSections2";
+import Landing from "./Landing";
+import { User, getToken, clearToken, apiMe, apiLogout } from "@/lib/auth";
 
 export default function Index() {
   const [active, setActive] = useState<Section>("home");
+  const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setAuthChecked(true);
+      return;
+    }
+    apiMe(token).then((res) => {
+      if (res.user) setUser(res.user);
+      else clearToken();
+      setAuthChecked(true);
+    });
+  }, []);
+
+  const handleLogout = async () => {
+    const token = getToken();
+    if (token) await apiLogout(token);
+    clearToken();
+    setUser(null);
+    setActive("home");
+  };
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-dark)" }}>
+        <div className="text-center space-y-4">
+          <div className="font-orbitron font-black text-2xl flicker" style={{ color: "var(--neon-cyan)" }}>
+            NEKO<span style={{ color: "var(--neon-magenta)" }}>CYBER</span>
+          </div>
+          <div className="flex justify-center gap-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-2 h-2 rounded-full neon-pulse" style={{ background: "var(--neon-cyan)", animationDelay: `${i * 0.2}s`, boxShadow: "0 0 6px var(--neon-cyan)" }} />
+            ))}
+          </div>
+          <div className="font-mono text-xs" style={{ color: "rgba(0,255,255,0.4)" }}>ПОДКЛЮЧЕНИЕ К СЕТИ...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Landing onAuth={(u) => setUser(u)} />;
+  }
 
   const renderSection = () => {
     switch (active) {
@@ -14,7 +61,7 @@ export default function Index() {
       case "shop": return <ShopSection />;
       case "leaderboard": return <LeaderboardSection />;
       case "quests": return <QuestsSection />;
-      case "settings": return <SettingsSection />;
+      case "settings": return <SettingsSection onLogout={handleLogout} />;
     }
   };
 
@@ -43,15 +90,26 @@ export default function Index() {
 
           <div className="flex items-center gap-3">
             <div className="font-mono text-xs px-2 py-1" style={{ background: "rgba(0,255,255,0.05)", border: "1px solid rgba(0,255,255,0.15)", color: "var(--neon-cyan)" }}>
-              24,500 NKT
+              {user.nkt_balance.toLocaleString()} NKT
             </div>
-            <div
-              className="w-8 h-8 rounded-sm overflow-hidden cursor-pointer"
-              style={{ border: "1px solid rgba(0,255,255,0.3)" }}
+            <button
               onClick={() => setActive("profile")}
+              className="flex items-center gap-2"
+              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
             >
-              <img src={CAT_IMAGE} alt="Avatar" className="w-full h-full object-cover" />
-            </div>
+              <div className="w-8 h-8 rounded-sm overflow-hidden" style={{ border: "1px solid rgba(0,255,255,0.3)" }}>
+                <img src={CAT_IMAGE} alt="Avatar" className="w-full h-full object-cover" />
+              </div>
+              <span className="hidden md:block font-orbitron text-xs" style={{ color: "var(--neon-cyan)" }}>{user.username}</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              title="Выйти"
+              className="hidden md:flex items-center"
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "4px" }}
+            >
+              <Icon name="LogOut" size={14} style={{ color: "rgba(255,80,80,0.6)" }} />
+            </button>
           </div>
         </div>
       </header>
@@ -66,6 +124,7 @@ export default function Index() {
               style={{
                 borderBottom: active === item.id ? "2px solid var(--neon-cyan)" : "2px solid transparent",
                 color: active === item.id ? "var(--neon-cyan)" : "rgba(0,255,255,0.35)",
+                background: "none",
               }}
             >
               <Icon name={item.icon} size={14} />
@@ -81,7 +140,7 @@ export default function Index() {
 
       <footer className="mt-12 py-4 text-center" style={{ borderTop: "1px solid rgba(0,255,255,0.08)" }}>
         <div className="font-mono text-xs" style={{ color: "rgba(0,255,255,0.2)" }}>
-          NEKOCYBER v0.1.0 · BLOCKCHAIN NETWORK: ETH · СИСТЕМА ОНЛАЙН
+          NEKOCYBER v0.1.0 · {user.username} · ОНЛАЙН
           <span className="blink ml-1">_</span>
         </div>
       </footer>

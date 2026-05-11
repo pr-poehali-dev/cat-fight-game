@@ -296,7 +296,11 @@ export function QuestsSection() {
   );
 }
 
-export function SettingsSection() {
+interface SettingsProps {
+  onLogout?: () => void;
+}
+
+export function SettingsSection({ onLogout }: SettingsProps) {
   const [notifications, setNotifications] = useState(true);
   const [sound, setSound] = useState(true);
   const [nftVisible, setNftVisible] = useState(false);
@@ -353,6 +357,24 @@ export function SettingsSection() {
           ))}
         </div>
       </div>
+
+      {onLogout && (
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1 h-5" style={{ background: "var(--neon-cyan)", boxShadow: "0 0 6px var(--neon-cyan)" }} />
+            <span className="font-orbitron font-bold text-xs" style={{ color: "var(--neon-cyan)" }}>СЕССИЯ</span>
+          </div>
+          <div className="cyber-card overflow-hidden">
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center justify-between px-4 py-3 transition-all hover:bg-white hover:bg-opacity-5"
+            >
+              <span className="font-rajdhani text-sm" style={{ color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Выйти из аккаунта</span>
+              <span className="font-orbitron text-xs" style={{ color: "rgba(255,80,80,0.7)" }}>ВЫХОД →</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div>
         <div className="flex items-center gap-3 mb-3">
