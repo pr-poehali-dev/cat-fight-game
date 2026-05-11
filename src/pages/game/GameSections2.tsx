@@ -7,7 +7,25 @@ export function ScanLine() {
 
 export function ShopSection() {
   const [filter, setFilter] = useState("ALL");
+  const [boughtId, setBoughtId] = useState<number | null>(null);
   const filters = ["ALL", "NFT", "ОРУЖИЕ", "БРОНЯ", "ИМПЛАНТ"];
+
+  const filterMap: Record<string, string[]> = {
+    ALL: [],
+    NFT: ["NFT"],
+    ОРУЖИЕ: ["Оружие"],
+    БРОНЯ: ["Броня"],
+    ИМПЛАНТ: ["Имплант", "Щит"],
+  };
+
+  const filtered = filter === "ALL"
+    ? SHOP_ITEMS
+    : SHOP_ITEMS.filter((item) => filterMap[filter]?.includes(item.type));
+
+  const handleBuy = (id: number) => {
+    setBoughtId(id);
+    setTimeout(() => setBoughtId(null), 2000);
+  };
 
   return (
     <div className="space-y-5 fade-in-up">
@@ -44,51 +62,64 @@ export function ShopSection() {
         ))}
       </div>
 
+      {filtered.length === 0 && (
+        <div className="text-center py-12">
+          <div className="font-orbitron text-sm" style={{ color: "rgba(0,255,255,0.3)" }}>НЕТ ТОВАРОВ В ЭТОЙ КАТЕГОРИИ</div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {SHOP_ITEMS.map((item) => (
-          <div
-            key={item.id}
-            className="relative overflow-hidden rounded-sm cursor-pointer transition-transform hover:-translate-y-1"
-            style={{ background: "var(--bg-card2)", border: `1px solid ${item.color}33`, boxShadow: `0 4px 20px ${item.glow}` }}
-          >
-            <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${item.color}, transparent)` }} />
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <div className="font-orbitron font-bold text-sm" style={{ color: item.color }}>{item.name}</div>
-                  <div className="font-rajdhani text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{item.type}</div>
+        {filtered.map((item) => {
+          const justBought = boughtId === item.id;
+          return (
+            <div
+              key={item.id}
+              className="relative overflow-hidden rounded-sm cursor-pointer transition-transform hover:-translate-y-1"
+              style={{ background: "var(--bg-card2)", border: `1px solid ${item.color}33`, boxShadow: `0 4px 20px ${item.glow}` }}
+            >
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${item.color}, transparent)` }} />
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <div className="font-orbitron font-bold text-sm" style={{ color: item.color }}>{item.name}</div>
+                    <div className="font-rajdhani text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{item.type}</div>
+                  </div>
+                  <span className="font-orbitron font-black text-xs px-2 py-0.5" style={{ background: `${item.color}22`, color: item.color, border: `1px solid ${item.color}44`, letterSpacing: "0.05em" }}>
+                    {item.rarity}
+                  </span>
                 </div>
-                <span className="font-orbitron font-black text-xs px-2 py-0.5" style={{ background: `${item.color}22`, color: item.color, border: `1px solid ${item.color}44`, letterSpacing: "0.05em" }}>
-                  {item.rarity}
-                </span>
-              </div>
-              <div className="font-mono text-xs mb-4 px-3 py-2" style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                {item.bonus}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="font-orbitron font-bold text-base" style={{ color: item.color }}>
-                  {item.price} <span className="text-xs opacity-70">{item.currency}</span>
+                <div className="font-mono text-xs mb-4 px-3 py-2" style={{ background: "rgba(0,0,0,0.3)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  {item.bonus}
                 </div>
-                <button
-                  className="font-orbitron text-xs px-3 py-1.5 transition-all"
-                  style={{
-                    border: `1px solid ${item.color}`,
-                    color: item.color,
-                    clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))",
-                  }}
-                >
-                  КУПИТЬ
-                </button>
+                <div className="flex items-center justify-between">
+                  <div className="font-orbitron font-bold text-base" style={{ color: item.color }}>
+                    {item.price} <span className="text-xs opacity-70">{item.currency}</span>
+                  </div>
+                  <button
+                    className="font-orbitron text-xs px-3 py-1.5 transition-all"
+                    style={{
+                      border: `1px solid ${justBought ? "var(--neon-green)" : item.color}`,
+                      color: justBought ? "var(--bg-dark)" : item.color,
+                      background: justBought ? "var(--neon-green)" : "transparent",
+                      clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))",
+                    }}
+                    onClick={() => handleBuy(item.id)}
+                  >
+                    {justBought ? "✓ КУПЛЕНО" : "КУПИТЬ"}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 }
 
 export function LeaderboardSection() {
+  const [selectedPlayer, setSelectedPlayer] = useState<typeof LEADERBOARD[0] | null>(null);
+
   return (
     <div className="space-y-5 fade-in-up">
       <div className="cyber-card p-4">
@@ -101,7 +132,12 @@ export function LeaderboardSection() {
           const pos = [2, 1, 3][i];
           const height = ["h-28", "h-36", "h-24"][i];
           return (
-            <div key={p.rank} className={`relative flex flex-col items-center justify-end ${height} rounded-sm overflow-hidden`} style={{ background: `linear-gradient(to top, ${p.color}15, transparent)`, border: `1px solid ${p.color}33` }}>
+            <div
+              key={p.rank}
+              className={`relative flex flex-col items-center justify-end ${height} rounded-sm overflow-hidden cursor-pointer`}
+              style={{ background: `linear-gradient(to top, ${p.color}15, transparent)`, border: `1px solid ${p.color}33` }}
+              onClick={() => setSelectedPlayer(p)}
+            >
               <div className="absolute top-2 w-8 h-8 rounded-full flex items-center justify-center font-orbitron font-black text-xs" style={{ background: `${p.color}22`, border: `2px solid ${p.color}`, color: p.color }}>
                 #{pos}
               </div>
@@ -127,6 +163,7 @@ export function LeaderboardSection() {
             key={p.rank}
             className="grid grid-cols-12 gap-2 px-4 py-3 fade-in-up items-center hover:bg-white hover:bg-opacity-5 transition-all cursor-pointer"
             style={{ animationDelay: `${i * 0.1}s`, opacity: 0, borderBottom: "1px solid rgba(255,255,255,0.03)" }}
+            onClick={() => setSelectedPlayer(p)}
           >
             <div className="col-span-1">
               <div className="w-6 h-6 flex items-center justify-center font-orbitron font-black text-xs" style={{ color: p.color, border: `1px solid ${p.color}44`, background: `${p.color}11` }}>
@@ -146,11 +183,51 @@ export function LeaderboardSection() {
           ВАШ РАНГ: <span style={{ color: "var(--neon-cyan)" }}>#247</span> · СЧЁТ: <span style={{ color: "var(--neon-cyan)" }}>12,450</span>
         </div>
       </div>
+
+      {/* Player detail modal */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }} onClick={() => setSelectedPlayer(null)}>
+          <div className="cyber-card p-6 max-w-xs w-full mx-4 space-y-4 fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center">
+              <div className="font-orbitron font-black text-lg" style={{ color: selectedPlayer.color }}>{selectedPlayer.name}</div>
+              <div className="font-rajdhani text-sm mt-1" style={{ color: "rgba(255,255,255,0.5)" }}>{selectedPlayer.cat}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "РАНГ", value: `#${selectedPlayer.rank}` },
+                { label: "СЧЁТ", value: selectedPlayer.score.toLocaleString() },
+                { label: "ПОБЕДЫ", value: `${selectedPlayer.win}%` },
+                { label: "СЕЗОН", value: "S7" },
+              ].map((item) => (
+                <div key={item.label} className="text-center p-2" style={{ background: `${selectedPlayer.color}11`, border: `1px solid ${selectedPlayer.color}22` }}>
+                  <div className="font-orbitron font-bold text-sm" style={{ color: selectedPlayer.color }}>{item.value}</div>
+                  <div className="font-rajdhani text-xs" style={{ color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+            <button className="btn-cyber w-full" onClick={() => setSelectedPlayer(null)}>
+              <span>ЗАКРЫТЬ</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export function QuestsSection() {
+  const [questStates, setQuestStates] = useState(
+    QUESTS.map((q) => ({ ...q }))
+  );
+
+  const completeQuest = (id: number) => {
+    setQuestStates((prev) =>
+      prev.map((q) => q.id === id ? { ...q, done: true, progress: 100 } : q)
+    );
+  };
+
+  const doneCount = questStates.filter((q) => q.done).length;
+
   return (
     <div className="space-y-5 fade-in-up">
       <div className="cyber-card p-4 flex justify-between items-center">
@@ -159,13 +236,13 @@ export function QuestsSection() {
           <div className="font-rajdhani text-sm" style={{ color: "rgba(0,255,255,0.5)" }}>Выполняй задания · Получай награды</div>
         </div>
         <div className="text-right">
-          <div className="font-orbitron font-bold text-lg" style={{ color: "var(--neon-yellow)" }}>3/4</div>
+          <div className="font-orbitron font-bold text-lg" style={{ color: "var(--neon-yellow)" }}>{doneCount}/{questStates.length}</div>
           <div className="font-rajdhani text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>ВЫПОЛНЕНО</div>
         </div>
       </div>
 
       <div className="space-y-3">
-        {QUESTS.map((q, i) => (
+        {questStates.map((q, i) => (
           <div
             key={q.id}
             className="relative overflow-hidden fade-in-up"
@@ -202,7 +279,11 @@ export function QuestsSection() {
               </div>
               {!q.done && (
                 <div className="mt-3">
-                  <button className="font-orbitron text-xs px-3 py-1.5 transition-all" style={{ border: `1px solid ${q.color}`, color: q.color, clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}>
+                  <button
+                    className="font-orbitron text-xs px-3 py-1.5 transition-all"
+                    style={{ border: `1px solid ${q.color}`, color: q.color, clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}
+                    onClick={() => completeQuest(q.id)}
+                  >
                     ВЫПОЛНИТЬ
                   </button>
                 </div>
@@ -219,6 +300,8 @@ export function SettingsSection() {
   const [notifications, setNotifications] = useState(true);
   const [sound, setSound] = useState(true);
   const [nftVisible, setNftVisible] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className="space-y-5 fade-in-up">
@@ -277,14 +360,62 @@ export function SettingsSection() {
           <span className="font-orbitron font-bold text-xs" style={{ color: "var(--neon-yellow)" }}>ОПАСНАЯ ЗОНА</span>
         </div>
         <div className="cyber-card-magenta p-4 space-y-3">
-          <button className="btn-cyber-magenta w-full">
+          <button className="btn-cyber-magenta w-full" onClick={() => setConfirmReset(true)}>
             <span>СБРОСИТЬ ПРОГРЕСС</span>
           </button>
-          <button className="font-orbitron text-xs w-full px-4 py-2.5 transition-all" style={{ border: "1px solid rgba(255,0,0,0.4)", color: "rgba(255,80,80,0.9)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+          <button
+            className="font-orbitron text-xs w-full px-4 py-2.5 transition-all"
+            style={{ border: "1px solid rgba(255,0,0,0.4)", color: "rgba(255,80,80,0.9)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}
+            onClick={() => setConfirmDelete(true)}
+          >
             УДАЛИТЬ АККАУНТ
           </button>
         </div>
       </div>
+
+      {/* Reset confirm modal */}
+      {confirmReset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }} onClick={() => setConfirmReset(false)}>
+          <div className="cyber-card p-6 max-w-sm w-full mx-4 text-center space-y-4 fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <div className="font-orbitron font-black text-lg" style={{ color: "var(--neon-yellow)" }}>⚠ СБРОС ПРОГРЕССА</div>
+            <p className="font-rajdhani text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>Весь прогресс, уровень и ресурсы будут удалены. Это действие необратимо.</p>
+            <div className="flex gap-3">
+              <button className="flex-1 btn-cyber" onClick={() => setConfirmReset(false)}>
+                <span>ОТМЕНА</span>
+              </button>
+              <button
+                className="flex-1 font-orbitron text-xs px-4 py-2.5 transition-all"
+                style={{ border: "1px solid var(--neon-magenta)", color: "var(--neon-magenta)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}
+                onClick={() => setConfirmReset(false)}
+              >
+                СБРОСИТЬ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }} onClick={() => setConfirmDelete(false)}>
+          <div className="cyber-card p-6 max-w-sm w-full mx-4 text-center space-y-4 fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <div className="font-orbitron font-black text-lg" style={{ color: "rgba(255,80,80,1)" }}>☠ УДАЛЕНИЕ АККАУНТА</div>
+            <p className="font-rajdhani text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>Аккаунт, все NFT-коты и история будут удалены навсегда. Отменить невозможно.</p>
+            <div className="flex gap-3">
+              <button className="flex-1 btn-cyber" onClick={() => setConfirmDelete(false)}>
+                <span>ОТМЕНА</span>
+              </button>
+              <button
+                className="flex-1 font-orbitron text-xs px-4 py-2.5 transition-all"
+                style={{ border: "1px solid rgba(255,0,0,0.6)", color: "rgba(255,80,80,0.9)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}
+                onClick={() => setConfirmDelete(false)}
+              >
+                УДАЛИТЬ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,12 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { CAT_IMAGE, CATS_IMAGE } from "./constants";
+import { CAT_IMAGE, CATS_IMAGE, Section } from "./constants";
 
-export function HomeSection() {
+interface NavProps {
+  onNavigate: (section: Section) => void;
+}
+
+export function HomeSection({ onNavigate }: NavProps) {
   const [battleActive, setBattleActive] = useState(false);
 
   return (
@@ -30,7 +34,7 @@ export function HomeSection() {
               <button className="btn-cyber" onClick={() => setBattleActive(true)}>
                 <span>⚔ БИТВА</span>
               </button>
-              <button className="btn-cyber-magenta">
+              <button className="btn-cyber-magenta" onClick={() => onNavigate("profile")}>
                 <span>🐱 МОЙ КОТ</span>
               </button>
             </div>
@@ -42,8 +46,9 @@ export function HomeSection() {
             <img
               src={CAT_IMAGE}
               alt="Cyber Cat"
-              className="float relative z-10 rounded-sm object-cover"
+              className="float relative z-10 rounded-sm object-cover cursor-pointer"
               style={{ width: 200, height: 200, border: "2px solid rgba(0,255,255,0.4)", boxShadow: "0 0 30px rgba(0,255,255,0.3), 0 0 60px rgba(0,255,255,0.1)" }}
+              onClick={() => onNavigate("profile")}
             />
             <div className="absolute -top-2 -right-2 font-orbitron font-black text-xs px-2 py-1" style={{ background: "var(--neon-yellow)", color: "#000", clipPath: "polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%)" }}>
               LVL 42
@@ -55,12 +60,17 @@ export function HomeSection() {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 fade-in-up fade-in-up-2">
         {[
-          { label: "Сражений", value: "1,247", icon: "Swords", color: "var(--neon-cyan)" },
-          { label: "Побед", value: "89%", icon: "Trophy", color: "var(--neon-yellow)" },
-          { label: "NEKOTOKEN", value: "24,500", icon: "Coins", color: "var(--neon-magenta)" },
-          { label: "NFT Котов", value: "7", icon: "Layers", color: "var(--neon-green)" },
+          { label: "Сражений", value: "1,247", icon: "Swords", color: "var(--neon-cyan)", section: null },
+          { label: "Побед", value: "89%", icon: "Trophy", color: "var(--neon-yellow)", section: "leaderboard" as Section },
+          { label: "NEKOTOKEN", value: "24,500", icon: "Coins", color: "var(--neon-magenta)", section: "shop" as Section },
+          { label: "NFT Котов", value: "7", icon: "Layers", color: "var(--neon-green)", section: "profile" as Section },
         ].map((stat) => (
-          <div key={stat.label} className="cyber-card p-4 text-center">
+          <div
+            key={stat.label}
+            className="cyber-card p-4 text-center"
+            style={{ cursor: stat.section ? "pointer" : "default" }}
+            onClick={() => stat.section && onNavigate(stat.section)}
+          >
             <Icon name={stat.icon} size={20} style={{ color: stat.color, margin: "0 auto 8px", filter: `drop-shadow(0 0 6px ${stat.color})` }} />
             <div className="font-orbitron font-bold text-xl" style={{ color: stat.color }}>{stat.value}</div>
             <div className="font-rajdhani text-xs mt-1" style={{ color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{stat.label}</div>
@@ -70,8 +80,8 @@ export function HomeSection() {
 
       {/* Battle modal */}
       {battleActive && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }}>
-          <div className="cyber-card p-8 max-w-sm w-full mx-4 text-center space-y-6 fade-in-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }} onClick={() => setBattleActive(false)}>
+          <div className="cyber-card p-8 max-w-sm w-full mx-4 text-center space-y-6 fade-in-up" onClick={(e) => e.stopPropagation()}>
             <div className="font-orbitron font-black text-2xl neon-cyan glitch">ПОИСК ВРАГА</div>
             <div className="flex justify-center gap-4">
               {[...Array(5)].map((_, i) => (
@@ -101,7 +111,7 @@ export function HomeSection() {
                 <div className="font-orbitron font-bold text-sm neon-magenta">7 NFT КОТОВ</div>
                 <div className="font-rajdhani text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>Общая стоимость: 0.35 ETH</div>
               </div>
-              <button className="btn-cyber-magenta">
+              <button className="btn-cyber-magenta" onClick={() => onNavigate("shop")}>
                 <span>ТОРГОВЛЯ</span>
               </button>
             </div>
@@ -112,7 +122,9 @@ export function HomeSection() {
   );
 }
 
-export function ProfileSection() {
+export function ProfileSection({ onNavigate }: NavProps) {
+  const [selectedCat, setSelectedCat] = useState<{ name: string; rarity: string; color: string } | null>(null);
+
   const stats = [
     { name: "АТАКА", value: 87, color: "var(--neon-magenta)" },
     { name: "ЗАЩИТА", value: 64, color: "var(--neon-cyan)" },
@@ -211,7 +223,12 @@ export function ProfileSection() {
         </div>
         <div className="grid grid-cols-4 md:grid-cols-7 gap-3">
           {cats.map((cat) => (
-            <div key={cat.name} className="aspect-square relative overflow-hidden rounded-sm cursor-pointer group" style={{ background: "var(--bg-card2)", border: `1px solid ${cat.color}33` }}>
+            <div
+              key={cat.name}
+              className="aspect-square relative overflow-hidden rounded-sm cursor-pointer group"
+              style={{ background: "var(--bg-card2)", border: `1px solid ${cat.color}33` }}
+              onClick={() => setSelectedCat(cat)}
+            >
               <img src={CAT_IMAGE} alt={cat.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
               <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${cat.color}40 0%, transparent 60%)` }} />
               <div className="absolute bottom-0 left-0 right-0 p-1 text-center">
@@ -221,12 +238,37 @@ export function ProfileSection() {
               <div className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: cat.color, boxShadow: `0 0 4px ${cat.color}` }} />
             </div>
           ))}
-          <div className="aspect-square border border-dashed flex flex-col items-center justify-center gap-1 rounded-sm cursor-pointer hover:border-solid transition-all" style={{ borderColor: "rgba(0,255,255,0.2)" }}>
+          <div
+            className="aspect-square border border-dashed flex flex-col items-center justify-center gap-1 rounded-sm cursor-pointer hover:border-solid transition-all"
+            style={{ borderColor: "rgba(0,255,255,0.2)" }}
+            onClick={() => onNavigate("shop")}
+          >
             <Icon name="Plus" size={16} style={{ color: "rgba(0,255,255,0.4)" }} />
             <span className="font-orbitron" style={{ color: "rgba(0,255,255,0.4)", fontSize: "0.5rem" }}>МИНТ</span>
           </div>
         </div>
       </div>
+
+      {/* Cat detail modal */}
+      {selectedCat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(2,0,16,0.9)", backdropFilter: "blur(10px)" }} onClick={() => setSelectedCat(null)}>
+          <div className="cyber-card p-6 max-w-xs w-full mx-4 text-center space-y-4 fade-in-up" onClick={(e) => e.stopPropagation()}>
+            <div className="font-orbitron font-black text-lg" style={{ color: selectedCat.color }}>{selectedCat.name}</div>
+            <img src={CAT_IMAGE} alt={selectedCat.name} className="w-32 h-32 object-cover rounded-sm mx-auto" style={{ border: `2px solid ${selectedCat.color}`, boxShadow: `0 0 20px ${selectedCat.color}44` }} />
+            <div className="font-orbitron font-black text-sm px-3 py-1 mx-auto inline-block" style={{ background: `${selectedCat.color}22`, color: selectedCat.color, border: `1px solid ${selectedCat.color}44` }}>
+              {selectedCat.rarity}
+            </div>
+            <div className="flex gap-3">
+              <button className="flex-1 btn-cyber" onClick={() => setSelectedCat(null)}>
+                <span>ЗАКРЫТЬ</span>
+              </button>
+              <button className="flex-1 btn-cyber-magenta" onClick={() => { setSelectedCat(null); onNavigate("shop"); }}>
+                <span>ПРОДАТЬ</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

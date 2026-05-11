@@ -9,8 +9,8 @@ export default function Index() {
 
   const renderSection = () => {
     switch (active) {
-      case "home": return <HomeSection />;
-      case "profile": return <ProfileSection />;
+      case "home": return <HomeSection onNavigate={setActive} />;
+      case "profile": return <ProfileSection onNavigate={setActive} />;
       case "shop": return <ShopSection />;
       case "leaderboard": return <LeaderboardSection />;
       case "quests": return <QuestsSection />;
@@ -45,7 +45,11 @@ export default function Index() {
             <div className="font-mono text-xs px-2 py-1" style={{ background: "rgba(0,255,255,0.05)", border: "1px solid rgba(0,255,255,0.15)", color: "var(--neon-cyan)" }}>
               24,500 NKT
             </div>
-            <div className="w-8 h-8 rounded-sm overflow-hidden" style={{ border: "1px solid rgba(0,255,255,0.3)" }}>
+            <div
+              className="w-8 h-8 rounded-sm overflow-hidden cursor-pointer"
+              style={{ border: "1px solid rgba(0,255,255,0.3)" }}
+              onClick={() => setActive("profile")}
+            >
               <img src={CAT_IMAGE} alt="Avatar" className="w-full h-full object-cover" />
             </div>
           </div>
